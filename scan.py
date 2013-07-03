@@ -3,6 +3,7 @@ import pickle
 import string
 from BeautifulSoup import BeautifulSoup
 
+AIRPORT_NAMES_FILENAME = 'airports.list'
 
 def get_airports_from_skyscanner():  	
 	ports = []
@@ -14,7 +15,7 @@ def get_airports_from_skyscanner():
 		for airport in airports:
 			ports.append(airport.text[:-7])
 	
-	f = open('airports.list', 'w+')
+	f = open(AIRPORT_NAMES_FILENAME, 'w+')
 	pickle.dump(ports, f)
 	f.close()
 
@@ -22,7 +23,7 @@ def get_airports_from_skyscanner():
 
 
 def get_airports_from_pickle():
-	f = open('airports.list', 'r')
+	f = open(AIRPORT_NAMES_FILENAME, 'r')
 	ports = pickle.load(f)
 	f.close()
 	return ports
