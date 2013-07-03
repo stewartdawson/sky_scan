@@ -12,13 +12,11 @@ def get_airports_from_skyscanner():
 		page = urllib2.urlopen(url).read()
 		soup = BeautifulSoup(page)
 		airports = soup.findAll('table', 'sm_table sm_table_sections2')[1].findAll('a')
-		for airport in airports:
-			ports.append(airport.text[:-7])
+		ports.extend([a.text[:-7] for a in airports])
 	
 	f = open(AIRPORT_NAMES_FILENAME, 'w+')
 	pickle.dump(ports, f)
 	f.close()
-
 	return ports
 
 
