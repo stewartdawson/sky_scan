@@ -29,10 +29,30 @@ def get_airports_from_pickle():
 
 
 #ports = get_airports_from_skyscanner()
-ports = get_airports_from_pickle()
+#ports = get_airports_from_pickle()
 
-print ports
-print len(ports), 'airports found'
+#print ports
+#print len(ports), 'airports found'
 
 
+sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+sparql.setQuery("""
+    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+    PREFIX p: <http://dbpedia.org/property/>
+    PREFIX dbowl: <http://dbpedia.org/ontology/>
+    PREFIX g: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    SELECT *
+    WHERE {
+    ?airport a dbowl:Airport;
+    p:name ?name;
+    g:geometry ?geo;
+    p:iata ?iata;
+    p:icao ?icao.
+    FILTER regex(?name, 'Glasgow International', 'i')
+    }
+""")
+sparql.setReturnFormat(JSON)
+results = sparql.query().convert()
 
+for result in results["results"]["bindings"]:
+	print result
