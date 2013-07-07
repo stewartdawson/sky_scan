@@ -1,6 +1,8 @@
 import urllib2
 import pickle
 import string
+import os
+import glob
 from BeautifulSoup import BeautifulSoup
 from SPARQLWrapper import SPARQLWrapper, JSON
 
@@ -16,9 +18,8 @@ def get_airports_from_skyscanner():
         airports = soup.findAll('table', 'sm_table sm_table_sections2')[1].findAll('a')
         ports.extend([a.text[:-7] for a in airports])
 
-    f = open(AIRPORT_NAMES_FILENAME, 'w+')
-    pickle.dump(ports, f)
-    f.close()
+    with open(AIRPORT_NAMES_FILENAME, 'w+') as f:
+        pickle.dump(ports, f)
     return ports
 
 
@@ -54,11 +55,41 @@ def get_airport_data_from_dbpedia(name):
 
     return results["results"]["bindings"]
 
+def strip_problem_search_chars(name):
+    return name.replace("Int'l.", '').replace("'", '')
 
 def get_airport_data():
-    for port in  ports[:10]:
-        print get_airport_data_from_dbpedia(port)
+    data_path = 'port_data/'
+    problem_data_path = 'problem_data/'
+
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+    if not os.path.exists(problem_data_path):
+        os.makedirs(problem_data_path)
+
+    for port in  ports:
+        fn = port.replace(' ', '').replace('/', '')
+        if os.path.exists(data_path + fn) or os.path.exists(problem_data_path + fn):
+            print 'data file already exists'
+            continue
+        port = strip_problem_search_chars(port)
+        res = get_airport_data_from_dbpedia(port)
+        if len(res) == 1:
+            with open(data_path + fn, 'w"') as f:
+                pickle.dump(res[0], f)
+            print res
+        elif len(res) > 1:
+            with open(problem_data_path + fn, 'w"') as f:
+                pickle.dump(res[0], f)
+        elif len(res) == 0:
+            with open(problem_data_path + fn + '_notfound', 'w') as f:
+                pickle.dump([], f) # just put an empty collection in it
 
 #ports = get_airports_from_skyscanner()
-ports = get_airports_from_pickle()
-get_airport_data()
+#ports = get_airports_from_pickle()
+#get_airport_data()
+
+#fs= glob.glob('problem_data/*_notfound')
+#for f in fs:
+#    with open(f, 'w') as fw:
+#        pickle.dump([], fw)
